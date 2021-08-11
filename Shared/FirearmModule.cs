@@ -1,14 +1,17 @@
 ﻿using System;
 using ThunderRoad;
+using UnityEngine.ResourceManagement.ResourceLocations;
 using static ModularFirearms.FirearmFunctions;
 
 namespace ModularFirearms.Shared
 {
-    public class FirearmModule : ItemModule
-    {
+    public class FirearmModule : ItemModule {
+
         private WeaponType selectedType;
         public int firearmCategory = 0;
         public string firearmType = "SemiAuto";
+        public float range;
+        public float damage;
 
         public string mainHandleRef;
         public string slideHandleRef;
@@ -24,10 +27,7 @@ namespace ModularFirearms.Shared
         public float soundVolume = 1.0f;
 
         public string fireSoundRef;
-        public string fireSound1Ref;
-        public string fireSound2Ref;
-        public string fireSound3Ref;
-        public int maxFireSounds = 3;
+        public string fireSoundAudio;
 
         public string compassRef;
 
@@ -43,8 +43,11 @@ namespace ModularFirearms.Shared
         public float longPressTime = 0.25f;
 
         public string emptySoundRef;
+        public string emptySoundAudio;
         public string pullSoundRef;
+        public string pullSoundAudio;
         public string rackSoundRef;
+        public string rackSoundAudio;
 
         public string shellInsertSoundRef;
 
@@ -80,7 +83,6 @@ namespace ModularFirearms.Shared
         public float slideBlowbackForce = 30.0f;
 
         // JSON definition references
-        public string projectileID;
         public string shellID;
         public string ammoID;
         //public string acceptedMagazineID;

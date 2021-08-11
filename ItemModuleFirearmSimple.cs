@@ -1,4 +1,5 @@
 ﻿using ThunderRoad;
+using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace ModularFirearms
 {
