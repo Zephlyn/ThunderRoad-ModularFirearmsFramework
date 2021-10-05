@@ -28,6 +28,7 @@ namespace ModularFirearms.Shared
 
         public string fireSoundRef;
         public string fireSoundAudio;
+        public string fireFarSoundAudio;
 
         public string compassRef;
 
@@ -48,6 +49,7 @@ namespace ModularFirearms.Shared
         public string pullSoundAudio;
         public string rackSoundRef;
         public string rackSoundAudio;
+        public string trailSoundAudio;
 
         public string shellInsertSoundRef;
 

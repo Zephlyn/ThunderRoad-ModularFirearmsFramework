@@ -49,6 +49,8 @@ namespace ModularFirearms.Weapons {
         protected AudioSource fireSound;
         protected IResourceLocation fireSoundLocation;
         protected AudioContainer audioContainerFire;
+        protected IResourceLocation fireFarSoundLocation;
+        protected AudioContainer audioContainerFireFar;
         protected AudioSource emptySound;
         protected IResourceLocation emptySoundLocation;
         protected AudioContainer audioContainerEmpty;
@@ -61,6 +63,7 @@ namespace ModularFirearms.Weapons {
         protected AudioSource rackforwardSound;
         protected IResourceLocation rackSoundLocation;
         protected AudioContainer audioContainerRack;
+        protected AudioContainer audioContainerTrail;
 
         protected Animator animations;
 
@@ -111,12 +114,21 @@ namespace ModularFirearms.Weapons {
             if (!String.IsNullOrEmpty(module.shellEjectionRef)) shellEjectionPoint = item.GetCustomReference(module.shellEjectionRef);
             if (!String.IsNullOrEmpty(module.animationRef)) animations = item.GetCustomReference(module.animationRef).GetComponent<Animator>();
 
+            // Fire sound(s)
             if (!String.IsNullOrEmpty(module.fireSoundRef)) fireSound = item.GetCustomReference(module.fireSoundRef).GetComponent<AudioSource>();
+            
             if (audioContainerFire) {
                 Catalog.ReleaseAsset(audioContainerFire);
             }
             Catalog.LoadAssetAsync(module.fireSoundAudio, delegate (AudioContainer value) {
                 audioContainerFire = value;
+            }, module.itemData.id);
+            
+            if (audioContainerFireFar) {
+                Catalog.ReleaseAsset(audioContainerFireFar);
+            }
+            Catalog.LoadAssetAsync(module.fireFarSoundAudio, delegate (AudioContainer value) {
+                audioContainerFireFar = value;
             }, module.itemData.id);
             fireSound.spatialBlend = 1;
             fireSound.outputAudioMixerGroup = GameManager.local.audioMixer.FindMatchingGroups("Effect")[0];
@@ -152,6 +164,13 @@ namespace ModularFirearms.Weapons {
             }, module.itemData.id);
             rackforwardSound.spatialBlend = 1;
             rackforwardSound.outputAudioMixerGroup = GameManager.local.audioMixer.FindMatchingGroups("Effect")[0];
+
+            if (audioContainerTrail) {
+                Catalog.ReleaseAsset(audioContainerTrail);
+            }
+            Catalog.LoadAssetAsync(module.trailSoundAudio, delegate (AudioContainer value) {
+                audioContainerTrail = value;
+            }, module.itemData.id);
 
             if (!String.IsNullOrEmpty(module.flashRef)) muzzleFlash = item.GetCustomReference(module.flashRef).GetComponent<ParticleSystem>();
             if (!String.IsNullOrEmpty(module.smokeRef)) muzzleSmoke = item.GetCustomReference(module.smokeRef).GetComponent<ParticleSystem>();
@@ -324,7 +343,7 @@ namespace ModularFirearms.Weapons {
                 if (action == Interactable.Action.UseStart) {
                     // Begin Firing
                     triggerPressed = true;
-                    if (!isFiring) StartCoroutine(FirearmFunctions.ShootCoroutine(item, module, this, TrackedFire, SetFiringFlag, fireModeSelection));
+                    if (!isFiring) StartCoroutine(FirearmFunctions.ShootCoroutine(item, module, this, TrackedFire, SetFiringFlag, TriggerIsPressed, fireModeSelection));
                 }
                 if (action == Interactable.Action.UseStop) {
                     // End Firing
@@ -386,6 +405,12 @@ namespace ModularFirearms.Weapons {
             }
 
 
+        }
+
+        public void PlayTrailSound() {
+            if (fireSound != null) {
+                fireSound.PlayOneShot(audioContainerTrail?.PickAudioClip());
+            }
         }
 
         protected void OnMagazineInserted(Item interactiveObject) {
@@ -606,9 +631,17 @@ namespace ModularFirearms.Weapons {
         public void PreFireEffects() {
             FirearmFunctions.Animate(animations, module.fireAnimationRef);
             if (muzzleFlash != null) muzzleFlash.Play();
-            if (fireSound != null) {
-                fireSound.PlayOneShot(audioContainerFire?.PickAudioClip());
+
+            if (Vector3.Distance(fireSound.transform.position, Player.currentCreature.transform.position) > 20) {
+                if (fireSound != null) {
+                    fireSound.PlayOneShot(audioContainerFireFar?.PickAudioClip());
+                }
+            } else {
+                if (fireSound != null) {
+                    fireSound.PlayOneShot(audioContainerFire?.PickAudioClip());
+                }
             }
+
             if (muzzleSmoke != null) muzzleSmoke.Play();
         }
 
@@ -622,7 +655,7 @@ namespace ModularFirearms.Weapons {
             PreFireEffects();
             if (firedByNPC) return;
 
-            FirearmFunctions.DoRayCast(item, muzzlePoint, module.range, module.damage, module.bulletForce);
+            FirearmFunctions.DoRayCast(item, muzzlePoint, module, module.range, module.damage, module.bulletForce);
 
             if (shellParticle != null) {
                 if (shellParticle.isPlaying) shellParticle.Stop();
@@ -640,7 +673,6 @@ namespace ModularFirearms.Weapons {
                 ApplyRecoil(item.rb, module.recoilForces, 1, false, true, module.hapticForce);
             }
         }
-
 
         protected bool TrackedFire() {
             if (slideController != null) {
