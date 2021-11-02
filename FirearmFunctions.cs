@@ -456,6 +456,7 @@ namespace ModularFirearms {
 			WeaponIsFiring?.Invoke(false);
 		}
 
+		//TODO: Somethings wrong with the range, not sure if getting the property from the module isn't working or the actual raycasting?
 		public static void DoRayCast(Item item, Transform raycastPoint, FirearmModule module, float range,
 			float force) {
 			var Transform = raycastPoint.transform;
