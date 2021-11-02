@@ -67,6 +67,8 @@ namespace ModularFirearms.Items
         public void Insert()
         {
             insertedIntoObject = true;
+            if (Player.currentCreature is null) return;
+            NoiseManager.AddNoise(item.transform.position, 1f, Player.currentCreature);
             //magazineHandle.data.disableTouch = true;
         }
 
@@ -87,9 +89,12 @@ namespace ModularFirearms.Items
             //    }
             //}
             if (shooterItem != null) { item.IgnoreObjectCollision(shooterItem); }
-            item.IgnoreRagdollCollision(Player.local.creature.ragdoll);
             item.rb.AddRelativeForce(new Vector3(module.ejectionForceVector[0], module.ejectionForceVector[1], module.ejectionForceVector[2]), ForceMode.Impulse);
             //magazineHandle.data.disableTouch = false;
+            
+            if (Player.currentCreature is null) return;
+            
+            NoiseManager.AddNoise(item.transform.position, 1f, Player.currentCreature);
         }
 
         public void ConsumeOne()

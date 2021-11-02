@@ -201,44 +201,33 @@ namespace ModularFirearms {
 		/// <param name="hapticForce"></param>
 		public static void ApplyRecoil(Rigidbody itemRB, float[] recoilForces, float recoilMult = 1.0f,
 			bool leftHandHaptic = false, bool rightHandHaptic = false,
-			float hapticForce = 1.0f) {
-			if (rightHandHaptic) PlayerControl.handRight.HapticShort(hapticForce);
-
-			if (leftHandHaptic) PlayerControl.handLeft.HapticShort(hapticForce);
-
-			if (recoilForces == null) return;/*
-			itemRB.AddRelativeForce(new Vector3(
-				Random.Range(recoilForces[0], recoilForces[1]) * recoilMult,
-				Random.Range(recoilForces[2], recoilForces[3]) * recoilMult,
-				Random.Range(recoilForces[4], recoilForces[5]) * recoilMult));*/
-
-			itemRB.AddTorque(new Vector3(
-				Random.Range(recoilForces[0], recoilForces[1]) * recoilMult,
-				Random.Range(recoilForces[2], recoilForces[3]) * recoilMult,
-				Random.Range(recoilForces[4], recoilForces[5]) * recoilMult));
-
-			if (rightHandHaptic) {/*
-				Player.currentCreature.handRight.rb.AddRelativeForce(new Vector3(
-					Random.Range(recoilForces[0], recoilForces[1]) * recoilMult,
-					Random.Range(recoilForces[2], recoilForces[3]) * recoilMult,
-					Random.Range(recoilForces[4], recoilForces[5]) * recoilMult));*/
-
-				Player.currentCreature.handRight.rb.AddTorque(new Vector3(
-					Random.Range(recoilForces[0], recoilForces[1]) * recoilMult,
-					Random.Range(recoilForces[2], recoilForces[3]) * recoilMult,
-					Random.Range(recoilForces[4], recoilForces[5]) * recoilMult));
+			float hapticForce = 1.0f) {            if (rightHandHaptic) {
+				PlayerControl.handRight.HapticShort(hapticForce);
 			}
 
-			if (!leftHandHaptic) return;/*
-			Player.currentCreature.handLeft.rb.AddRelativeForce(new Vector3(
-				Random.Range(recoilForces[0], recoilForces[1]) * recoilMult,
-				Random.Range(recoilForces[2], recoilForces[3]) * recoilMult,
-				Random.Range(recoilForces[4], recoilForces[5]) * recoilMult));*/
+			if (leftHandHaptic) {
+				PlayerControl.handLeft.HapticShort(hapticForce);
+			}
 
-			Player.currentCreature.handLeft.rb.AddTorque(new Vector3(
-				Random.Range(recoilForces[0], recoilForces[1]) * recoilMult,
-				Random.Range(recoilForces[2], recoilForces[3]) * recoilMult,
-				Random.Range(recoilForces[4], recoilForces[5]) * recoilMult));
+			if (recoilForces == null) return;
+			itemRB.AddRelativeForce(new Vector3(
+				UnityEngine.Random.Range(recoilForces[0], recoilForces[1]) * recoilMult,
+				UnityEngine.Random.Range(recoilForces[2], recoilForces[3]) * recoilMult,
+				UnityEngine.Random.Range(recoilForces[4], recoilForces[5]) * recoilMult));
+
+			if (rightHandHaptic) {
+				Player.currentCreature.handRight.rb.AddRelativeForce(new Vector3(
+					UnityEngine.Random.Range(recoilForces[0], recoilForces[1]) * recoilMult,
+					UnityEngine.Random.Range(recoilForces[2], recoilForces[3]) * recoilMult,
+					UnityEngine.Random.Range(recoilForces[4], recoilForces[5]) * recoilMult));
+			}
+
+			if (leftHandHaptic) {
+				Player.currentCreature.handLeft.rb.AddRelativeForce(new Vector3(
+					UnityEngine.Random.Range(recoilForces[0], recoilForces[1]) * recoilMult,
+					UnityEngine.Random.Range(recoilForces[2], recoilForces[3]) * recoilMult,
+					UnityEngine.Random.Range(recoilForces[4], recoilForces[5]) * recoilMult));
+			}
 		}
 
 		/// <summary>
@@ -253,13 +242,13 @@ namespace ModularFirearms {
 		public static void HitscanExplosion(Vector3 origin, float force, float blastRadius, float liftMult,
 			ForceMode forceMode = ForceMode.Impulse) {
 			try {
-				foreach (var item in Item.list.Where(item => Math.Abs(Vector3.Distance(item.transform.position, origin)) <= blastRadius)) {
+				foreach (var item in Item.all.Where(item => Math.Abs(Vector3.Distance(item.transform.position, origin)) <= blastRadius)) {
 					//Debug.Log("[F-L42-HitscanExplosion] Hit Item: " + item.name);
 					item.rb.AddExplosionForce(force * item.rb.mass, origin, blastRadius, liftMult, forceMode);
 					item.rb.AddForce(Vector3.up * liftMult * item.rb.mass, forceMode);
 				}
 
-				foreach (var creature in Creature.list.Where(creature => creature != Player.currentCreature).Where(creature => Math.Abs(Vector3.Distance(creature.transform.position, origin)) <= blastRadius)) {
+				foreach (var creature in Creature.all.Where(creature => creature != Player.currentCreature).Where(creature => Math.Abs(Vector3.Distance(creature.transform.position, origin)) <= blastRadius)) {
 					// Kill Creatures in Range
 					//Debug.Log("[F-L42-HitscanExplosion] Hit Creature: " + creature.name);
 					if (!creature
@@ -311,54 +300,6 @@ namespace ModularFirearms {
 				Debug.LogError(
 					"[FL42-FirearmFunctions][SetSwitchAnimation] Exception in setting Animator floats 'x' and 'y'");
 			}
-		}
-
-		public static void RayCastShoot(Item sourceItem, Transform rayCastPoint, float maxDistance, float force) {
-			var laserRay = new Ray(rayCastPoint.position, rayCastPoint.forward);
-
-			if (!Physics.Raycast(laserRay, out var hit, maxDistance)) return;
-			var hitCreature = hit.collider.transform.root.GetComponent<Creature>();
-			if (hitCreature == null) return;
-			Debug.Log("Hit Creature: " + hitCreature.name);
-
-			var hitPart = hit.transform.GetComponentInChildren<RagdollPart>();
-
-			if (hitPart == null) return;
-			Debug.Log("Hit Part: " + hitPart.name);
-			var Forward = rayCastPoint.forward;
-			hitCreature.locomotion.rb.AddForce(Forward * force, ForceMode.Impulse);
-			hitPart.rb.AddForce(Forward * force, ForceMode.Impulse);
-
-
-			var thisCollision = new CollisionInstance(new DamageStruct(DamageType.Pierce, 99999f)) {
-				contactPoint = hit.collider.transform.position
-			};
-
-			var thisEffect = new EffectInstance();
-			var hitEffect = Catalog.GetData<EffectData>("HitBladeDecalFlesh");
-			thisEffect.AddEffect(hitEffect, hit.point, Quaternion.Euler(0f, 0f, 0f), hit.collider.transform,
-				thisCollision, false);
-
-			hitEffect = Catalog.GetData<EffectData>("HitMaterialFlesh");
-			thisEffect.AddEffect(hitEffect, hit.point, Quaternion.Euler(0f, 0f, 0f), hit.collider.transform,
-				thisCollision, false);
-
-			hitEffect = Catalog.GetData<EffectData>("HitProjectileOnFlesh");
-			thisEffect.AddEffect(hitEffect, hit.point, Quaternion.Euler(0f, 0f, 0f), hit.collider.transform,
-				thisCollision, false);
-
-
-			hitEffect = Catalog.GetData<EffectData>("DropBlood");
-			thisEffect.AddEffect(hitEffect, hit.point, Quaternion.Euler(0f, 0f, 0f), hit.collider.transform,
-				thisCollision, false);
-			thisEffect.Play();
-
-			hitCreature.Damage(thisCollision);
-
-			if (hitPart.name.Contains("Arm") || hitPart.name.Contains("Hand") ||
-				hitPart.name.Contains("Leg") || hitPart.name.Contains("Head")) hitPart.Slice();
-
-			hitCreature.TestKill();
 		}
 
 
@@ -462,49 +403,60 @@ namespace ModularFirearms {
 			WeaponIsFiring?.Invoke(true);
 			var fireDelay = 60.0f / module.fireRate;
 
-			if (fireSelector == FireMode.Safe) {
-				gun.PlayEmptySound();
-				yield return null;
-			}
-			else if (fireSelector == FireMode.Single) {
-				if (!TrackedFire()) {
+			switch (fireSelector) {
+				case FireMode.Safe:
 					gun.PlayEmptySound();
 					yield return null;
-				}
-				gun.PlayTrailSound();
-
-				yield return new WaitForSeconds(fireDelay);
-			}
-			else if (fireSelector == FireMode.Burst) {
-				for (var i = 0; i < module.burstNumber; i++) {
+					break;
+				case FireMode.Single: {
 					if (!TrackedFire()) {
 						gun.PlayEmptySound();
 						yield return null;
-						break;
 					}
 					gun.PlayTrailSound();
 
 					yield return new WaitForSeconds(fireDelay);
-				}
-				yield return null;
-			}
-			else if (fireSelector == FireMode.Auto) {
-				while (TriggerPressed()) {
-					if (!TrackedFire()) {
-						gun.PlayEmptySound();
-						yield return null;
-						break;
-					}
 					gun.PlayTrailSound();
-
-					yield return new WaitForSeconds(fireDelay);
+					break;
 				}
+				case FireMode.Burst: {
+					for (var i = 0; i < module.burstNumber; i++) {
+						if (!TrackedFire()) {
+							gun.PlayEmptySound();
+							yield return null;
+							break;
+						}
+						gun.PlayTrailSound();
+
+						yield return new WaitForSeconds(fireDelay);
+						gun.PlayTrailSound();
+					}
+					yield return null;
+					break;
+				}
+				case FireMode.Auto: {
+					while (TriggerPressed()) {
+						if (!TrackedFire()) {
+							gun.PlayEmptySound();
+							yield return null;
+							break;
+						}
+						gun.PlayTrailSound();
+
+						yield return new WaitForSeconds(fireDelay);
+						gun.PlayTrailSound();
+					}
+
+					break;
+				}
+				default:
+					throw new ArgumentOutOfRangeException(nameof(fireSelector), fireSelector, "I don't even know what went wrong here...");
 			}
 
 			WeaponIsFiring?.Invoke(false);
 		}
 
-		public static void DoRayCast(Item item, Transform raycastPoint, FirearmModule module, float range, float damage,
+		public static void DoRayCast(Item item, Transform raycastPoint, FirearmModule module, float range,
 			float force) {
 			var Transform = raycastPoint.transform;
 			var ray = new Ray(Transform.position, Transform.forward);
@@ -512,30 +464,113 @@ namespace ModularFirearms {
 			Physics.Raycast(ray, out var raycastHit, range, mask);
 
 			if (raycastHit.rigidbody == null) return;
+			raycastHit.rigidbody.AddForce(force * ray.direction, ForceMode.Impulse);
 			var ragdollPart = raycastHit.rigidbody.GetComponentInParent<RagdollPart>();
-			if (ragdollPart == null) {
-				raycastHit.rigidbody.AddForce(force * ray.direction, ForceMode.Impulse);
-			} else {
-				var coll = new CollisionInstance(new DamageStruct(DamageType.Pierce, damage));
-				//coll.damageStruct.damager.Load(Catalog.GetData<DamagerData>("FisherBasicBulletPierce"), item.collisionHandlers[0]);
-				coll.damageStruct.damage = damage;
-				//coll.sourceMaterial = Catalog.GetData<MaterialData>("Blade");
-				coll.contactPoint = raycastHit.point;
-				coll.contactNormal = raycastHit.normal;
-				coll.damageStruct.hitRagdollPart = ragdollPart;
+			if (ragdollPart == null) return;
 
-				SpawnBulletHole(raycastHit, ragdollPart, coll);
-
-				if (ragdollPart.ragdoll.creature.state != Creature.State.Dead)
-					ragdollPart.ragdoll.creature.Damage(coll);
-
-				ragdollPart.ragdoll.creature.brain.instance.TryPush(ray.direction, ragdollPart.ragdoll.creature.brain.instance.gravityPushBehaviorPerLevel[0]);
+			var creature = ragdollPart.ragdoll.creature;
+			float damage;
+			switch (ragdollPart.type) {
+				case RagdollPart.Type.Head:
+					damage = creature.maxHealth;
+					creature.brain.Stop();
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					break;
+				case RagdollPart.Type.Neck:
+					damage = creature.maxHealth;
+					creature.brain.Stop();
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					break;
+				case RagdollPart.Type.Torso:
+					damage = creature.maxHealth / 3;
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					break;
+				case RagdollPart.Type.LeftArm:
+					damage = creature.maxHealth / 10;
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					if(!creature.isKilled)
+						creature.handLeft.TryRelease();
+					break;
+				case RagdollPart.Type.RightArm:
+					damage = creature.maxHealth / 10;
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					if(!creature.isKilled)
+						creature.handRight.TryRelease();
+					break;
+				case RagdollPart.Type.LeftHand:
+					damage = creature.maxHealth / 15;
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					if(!creature.isKilled)
+						creature.handLeft.TryRelease();
+					break;
+				case RagdollPart.Type.RightHand:
+					damage = creature.maxHealth / 15;
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					if(!creature.isKilled)
+						creature.handRight.TryRelease();
+					break;
+				case RagdollPart.Type.LeftLeg:
+					damage = creature.maxHealth / 10;
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					if (!creature.isKilled)
+						creature.ragdoll.SetState(Ragdoll.State.Destabilized);
+					break;
+				case RagdollPart.Type.RightLeg:
+					damage = creature.maxHealth / 10;
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					if (!creature.isKilled)
+						creature.ragdoll.SetState(Ragdoll.State.Destabilized);
+					break;
+				case RagdollPart.Type.LeftFoot:
+					damage = creature.maxHealth / 10;
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					if (!creature.isKilled)
+						creature.ragdoll.SetState(Ragdoll.State.Destabilized);
+					break;
+				case RagdollPart.Type.RightFoot:
+					damage = creature.maxHealth / 10;
+					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					if (!creature.isKilled)
+						creature.ragdoll.SetState(Ragdoll.State.Destabilized);
+					break;
+				default:
+					damage = creature.maxHealth;
+					Debug.Log("WTF");
+					throw new ArgumentOutOfRangeException();
 			}
+			
+			var coll = new CollisionInstance(new DamageStruct(DamageType.Pierce, damage));
+			coll.damageStruct.damage = damage;
+			coll.damageStruct.damageType = DamageType.Pierce;
+			coll.sourceMaterial = Catalog.GetData<MaterialData>("Blade");
+			coll.targetMaterial = Catalog.GetData<MaterialData>("Flesh");
+			coll.targetColliderGroup = ragdollPart.colliderGroup;
+			coll.sourceColliderGroup = item.colliderGroups[0];
+			coll.contactPoint = raycastHit.point;
+			coll.contactNormal = raycastHit.normal;
+			
+			var penPoint = new GameObject().transform;
+			penPoint.position = raycastHit.point;
+			penPoint.rotation = Quaternion.LookRotation(raycastHit.normal);
+			penPoint.parent = raycastHit.transform;
+
+			coll.damageStruct.penetration = DamageStruct.Penetration.Hit;
+			coll.damageStruct.penetrationPoint = penPoint;
+			coll.damageStruct.penetrationDepth = 10;
+			coll.damageStruct.hitRagdollPart = ragdollPart;
+
+			SpawnBulletHole(raycastHit, ragdollPart, coll, item);
+
+			if (ragdollPart.ragdoll.creature.state == Creature.State.Dead) return;
+			ragdollPart.ragdoll.creature.Damage(coll);
+			ragdollPart.ragdoll.creature.TryPush(Creature.PushType.Hit, ray.direction, 3, ragdollPart.type);
+			
+			creature.brain.Stop();
 		}
 
 		// New
 		private static void SpawnBulletHole(RaycastHit raycastHit, RagdollPart ragdollPart,
-			CollisionInstance collisionInstance) {
+			CollisionInstance collisionInstance, Item item) {
 			var effectModuleReveal = data.modules[3] as EffectModuleReveal;
 			var revealMaterialControllers = new List<RevealMaterialController>();
 			foreach (var renderer in ragdollPart.renderers.Where(renderer => effectModuleReveal != null && renderer.revealDecal && (renderer.revealDecal.type == RevealDecal.Type.Default &&
@@ -544,6 +579,7 @@ namespace ModularFirearms {
 				effectModuleReveal.typeFilter.HasFlag(EffectModuleReveal.TypeFilter.Body) ||
 				renderer.revealDecal.type == RevealDecal.Type.Outfit &&
 				effectModuleReveal.typeFilter.HasFlag(EffectModuleReveal.TypeFilter.Outfit)))) {
+				
 				revealMaterialControllers.Add(renderer.revealDecal.revealMaterialController);
 				if (renderer.splitRenderer)
 					revealMaterialControllers.Add(renderer.splitRenderer.GetComponent<RevealMaterialController>());
@@ -567,15 +603,51 @@ namespace ModularFirearms {
 					effectModuleReveal.maskTexture, effectModuleReveal.maxChannelMultiplier, revealMaterialControllers,
 					effectModuleReveal.revealData, null));
 			TriggerRealisticBleed(ragdollPart, raycastHit.collider, reveal.transform, collisionInstance);
+			
+			collisionInstance.damageStruct.penetration = DamageStruct.Penetration.Skewer;
+			var physicMaterialHash = collisionInstance.targetMaterial.physicMaterialHash;
+			var PenetrationPointPosition = collisionInstance.damageStruct.penetrationPoint.position;
+			var contactPoint = PenetrationPointPosition + -collisionInstance.damageStruct.penetrationPoint.forward;
+			item.mainCollisionHandler.MeshRaycast(collisionInstance.targetColliderGroup, contactPoint, collisionInstance.damageStruct.penetrationPoint.forward, -collisionInstance.damageStruct.penetrationPoint.forward, ref physicMaterialHash);
+
+			var raycastPoint = new GameObject {
+				transform = {
+					position = contactPoint,
+					rotation = Quaternion.LookRotation(raycastHit.normal)
+				}
+			};
+			var ray = new Ray(raycastPoint.transform.position, raycastPoint.transform.forward);
+			LayerMask mask = LayerMask.GetMask("NPC", "Ragdoll", "Dropped Object");
+			Physics.Raycast(ray, out var raycastHitForExitWound, 100, mask);
+			
+			var revealSkewed = new GameObject {
+				transform = {
+					position = raycastHitForExitWound.point,
+					rotation = Quaternion.LookRotation(raycastHitForExitWound.normal)
+				}
+			};
+			var positionSkewed = revealSkewed.transform.position;
+			var exitEffect = bloodHitData.Spawn(positionSkewed, revealSkewed.transform.rotation);
+			exitEffect.SetIntensity(10f);
+			exitEffect.Play();
+			var directionSkewed = -revealSkewed.transform.forward;
+			if (effectModuleReveal != null)
+				GameManager.local.StartCoroutine(RevealMaskProjection.ProjectAsync(
+					positionSkewed + -directionSkewed * effectModuleReveal.offsetDistance, directionSkewed,
+					revealSkewed.transform.up, effectModuleReveal.depth, effectModuleReveal.maxSize,
+					effectModuleReveal.maskTexture, effectModuleReveal.maxChannelMultiplier, revealMaterialControllers,
+					effectModuleReveal.revealData, null));
+			TriggerRealisticBleed(ragdollPart, raycastHitForExitWound.collider, revealSkewed.transform, collisionInstance);
+			
+			Debug.Log($"Hit position: ({raycastHit.point.x}, {raycastHit.point.y}, {raycastHit.point.z}) \n Exit position: ({revealSkewed.transform.position.x}, {revealSkewed.transform.position.y}, {revealSkewed.transform.position.z})");
 		}
 
 		// New
 		private static void TriggerRealisticBleed(RagdollPart ragdollPart, Collider collider, Transform location,
 			CollisionInstance collisionInstance) {
-			var effectInstance = new EffectInstance();
+			var effectInstance = new EffectInstance(data, location.position, location.rotation, 0f, 0f, location, collisionInstance, true, Array.Empty<Type>());
 			collisionInstance.pressureRelativeVelocity = Vector3.one;
 			collisionInstance.targetCollider = collider;
-			effectInstance.AddEffect(data, location.position, location.rotation, location, collisionInstance);
 		}
 
 		public static void ProjectileBurst(Item shooterItem, string projectileID, Transform spawnPoint,
@@ -761,9 +833,9 @@ namespace ModularFirearms {
 		/// <param name="initial"></param>
 		/// <param name="npcDistanceToFire"></param>
 		/// <returns></returns>
-		public static Vector3 NpcAimingAngle(BrainHuman NPCBrain, Vector3 initial, float npcDistanceToFire = 10.0f) {
+		public static Vector3 NpcAimingAngle(Brain NPCBrain, Vector3 initial, float npcDistanceToFire = 10.0f) {
 			if (NPCBrain == null) return initial;
-			var inaccuracyMult = 0.2f * (NPCBrain.aimSpreadCone / npcDistanceToFire);
+			var inaccuracyMult = 0.2f * (NPCBrain.instance.GetModule<BrainModuleBow>().aimSpreadAngle / npcDistanceToFire);
 			return new Vector3(
 				initial.x + Random.Range(-inaccuracyMult, inaccuracyMult),
 				initial.y + Random.Range(-inaccuracyMult, inaccuracyMult),

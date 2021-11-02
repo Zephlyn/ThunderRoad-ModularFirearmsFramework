@@ -12,10 +12,8 @@ namespace ModularFirearms
         public bool enabled = false;
         private Harmony harmony;
 
-        public override IEnumerator OnLoadCoroutine(Level levelDefinition)
+        public override IEnumerator OnLoadCoroutine()
         {
-            Debug.Log("[Fisher-LevelModules] Loading Level: " + levelDefinition.name);
-
             try
             {
                 if (this.enabled)
@@ -42,12 +40,11 @@ namespace ModularFirearms
             yield return null;
         }
 
-        public override void OnUnload(Level level)
+        public override void OnUnload()
         {
             //Debug.Log("[Fisher-BladeArms] Attempting to remove blades from arms...");
             //CheckPlayerForArmBlade(true);
             //playerInitialized = false;
-            base.OnUnload(level);
         }
 
         //[HarmonyPatch(typeof(Item))]

@@ -278,6 +278,7 @@ namespace ModularFirearms.Weapons {
                         //Debug.Log("[Fisher-Slide] PULL_THRESHOLD slideObject position values: " + slideObject.transform.localPosition.ToString());
                         if (pullbackSound != null) {
                             pullbackSound.PlayOneShot(audioContainerPull?.PickAudioClip());
+                            NoiseManager.AddNoise(pullbackSound.transform.position, 1f, item.mainHandler.creature);
                         }
 
                         isPulledBack = true;
@@ -317,6 +318,7 @@ namespace ModularFirearms.Weapons {
                 if (playSoundOnNext) {
                     if (rackforwardSound != null) {
                         rackforwardSound.PlayOneShot(audioContainerRack?.PickAudioClip());
+                        NoiseManager.AddNoise(rackforwardSound.transform.position, 1f, item.mainHandler.creature);
                     }
                     playSoundOnNext = false;
                 }
@@ -612,6 +614,7 @@ namespace ModularFirearms.Weapons {
                     slideController.ForwardState();
                     if (rackforwardSound != null) {
                         rackforwardSound.PlayOneShot(audioContainerRack?.PickAudioClip());
+                        NoiseManager.AddNoise(rackforwardSound.transform.position, 1f, item.mainHandler.creature);
                     };
                     UpdateAmmoCounter();
                     return true;
@@ -621,6 +624,7 @@ namespace ModularFirearms.Weapons {
                     slideController.LockedBackState();
                     if (emptySound != null) {
                         emptySound.PlayOneShot(audioContainerEmpty?.PickAudioClip());
+                        NoiseManager.AddNoise(emptySound.transform.position, 1f, item.mainHandler.creature);
                     }
 
                     return true;
@@ -643,11 +647,15 @@ namespace ModularFirearms.Weapons {
             }
 
             if (muzzleSmoke != null) muzzleSmoke.Play();
+
+            NoiseManager.AddNoise(fireSound.transform.position, 100f, item.mainHandler.creature);
         }
+        
 
         public void PlayEmptySound() {
             if(emptySound != null) {
                 emptySound.PlayOneShot(audioContainerEmpty?.PickAudioClip());
+                NoiseManager.AddNoise(emptySound.transform.position, 1f, item.mainHandler.creature);
             }
         }
 
@@ -655,7 +663,7 @@ namespace ModularFirearms.Weapons {
             PreFireEffects();
             if (firedByNPC) return;
 
-            FirearmFunctions.DoRayCast(item, muzzlePoint, module, module.range, module.damage, module.bulletForce);
+            FirearmFunctions.DoRayCast(item, muzzlePoint, module, module.range, module.bulletForce);
 
             if (shellParticle != null) {
                 if (shellParticle.isPlaying) shellParticle.Stop();
