@@ -459,6 +459,12 @@ namespace ModularFirearms {
 		//TODO: Somethings wrong with the range, not sure if getting the property from the module isn't working or the actual raycasting?
 		public static void DoRayCast(Item item, Transform raycastPoint, FirearmModule module, float range,
 			float force) {
+			NoiseManager.AddNoise(item.transform.position, 1000f, Player.currentCreature);
+			foreach (var creatureInRange in Creature.all.Where(c =>
+				Vector3.Distance(c.transform.position, item.transform.position) < range)) {
+				creatureInRange.ragdoll.physicTogglePlayerRadius = 1000f;
+				creatureInRange.ragdoll.physicToggleRagdollRadius = 1000f;
+			}
 			var Transform = raycastPoint.transform;
 			var ray = new Ray(Transform.position, Transform.forward);
 			LayerMask mask = LayerMask.GetMask("NPC", "Ragdoll", "Dropped Object");
@@ -474,27 +480,28 @@ namespace ModularFirearms {
 			switch (ragdollPart.type) {
 				case RagdollPart.Type.Head:
 					damage = creature.maxHealth;
-					creature.brain.Stop();
 					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
 					break;
 				case RagdollPart.Type.Neck:
 					damage = creature.maxHealth;
-					creature.brain.Stop();
 					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
 					break;
 				case RagdollPart.Type.Torso:
 					damage = creature.maxHealth / 3;
 					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					ragdollPart.ragdoll.creature.TryPush(Creature.PushType.Hit, ray.direction, 2, ragdollPart.type);
 					break;
 				case RagdollPart.Type.LeftArm:
 					damage = creature.maxHealth / 10;
 					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					ragdollPart.ragdoll.creature.TryPush(Creature.PushType.Hit, ray.direction, 1, ragdollPart.type);
 					if(!creature.isKilled)
 						creature.handLeft.TryRelease();
 					break;
 				case RagdollPart.Type.RightArm:
 					damage = creature.maxHealth / 10;
 					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
+					ragdollPart.ragdoll.creature.TryPush(Creature.PushType.Hit, ray.direction, 1, ragdollPart.type);
 					if(!creature.isKilled)
 						creature.handRight.TryRelease();
 					break;
@@ -560,13 +567,15 @@ namespace ModularFirearms {
 			coll.damageStruct.penetrationDepth = 10;
 			coll.damageStruct.hitRagdollPart = ragdollPart;
 
+			coll.intensity = damage;
+			coll.pressureRelativeVelocity = Vector3.one;
+
 			SpawnBulletHole(raycastHit, ragdollPart, coll, item);
 
-			if (ragdollPart.ragdoll.creature.state == Creature.State.Dead) return;
 			ragdollPart.ragdoll.creature.Damage(coll);
-			ragdollPart.ragdoll.creature.TryPush(Creature.PushType.Hit, ray.direction, 3, ragdollPart.type);
-			
-			creature.brain.Stop();
+
+			if (ragdollPart.type != RagdollPart.Type.Head) return;
+			creature.brain.instance.GetModule<BrainModuleDeath>().StopDying();
 		}
 
 		// New
@@ -641,13 +650,21 @@ namespace ModularFirearms {
 			TriggerRealisticBleed(ragdollPart, raycastHitForExitWound.collider, revealSkewed.transform, collisionInstance);
 			
 			Debug.Log($"Hit position: ({raycastHit.point.x}, {raycastHit.point.y}, {raycastHit.point.z}) \n Exit position: ({revealSkewed.transform.position.x}, {revealSkewed.transform.position.y}, {revealSkewed.transform.position.z})");
+			Effect effect;
+			effectModuleReveal.Spawn(data, revealSkewed.transform.position, revealSkewed.transform.rotation, out effect, 0f, 0f, revealSkewed.transform, collisionInstance);
+			effectModuleReveal.Spawn(data, reveal.transform.position, reveal.transform.rotation, out effect, 0f, 0f, reveal.transform, collisionInstance);
+			foreach (var c in Creature.all) {
+				c.ragdoll.physicTogglePlayerRadius = 5f;
+				c.ragdoll.physicToggleRagdollRadius = 3f;
+			}
 		}
 
 		// New
 		private static void TriggerRealisticBleed(RagdollPart ragdollPart, Collider collider, Transform location,
 			CollisionInstance collisionInstance) {
 			var effectInstance = new EffectInstance(data, location.position, location.rotation, 0f, 0f, location, collisionInstance, true, Array.Empty<Type>());
-			collisionInstance.pressureRelativeVelocity = Vector3.one;
+			effectInstance.Play();
+			
 			collisionInstance.targetCollider = collider;
 		}
 
