@@ -480,6 +480,7 @@ namespace ModularFirearms {
 			switch (ragdollPart.type) {
 				case RagdollPart.Type.Head:
 					damage = creature.maxHealth;
+					creature.brain.instance.GetModule<BrainModuleSpeak>().Unload();
 					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
 					break;
 				case RagdollPart.Type.Neck:
@@ -489,7 +490,6 @@ namespace ModularFirearms {
 				case RagdollPart.Type.Torso:
 					damage = creature.maxHealth / 3;
 					Debug.Log($"Shot creature {ragdollPart.type.ToString()}");
-					ragdollPart.ragdoll.creature.TryPush(Creature.PushType.Hit, ray.direction, 2, ragdollPart.type);
 					break;
 				case RagdollPart.Type.LeftArm:
 					damage = creature.maxHealth / 10;
